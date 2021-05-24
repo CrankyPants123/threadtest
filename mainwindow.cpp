@@ -7,11 +7,11 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     mythread = new MyThread();
-    thread = new QThread(this);
+    thread = new QThread();
+    connect(this,&MainWindow::runThread,mythread,&MyThread::start);
+    connect(this,&MainWindow::stopThread,mythread,&MyThread::stop);
     connect(mythread,&MyThread::myThreadrun,this,&MainWindow::dealThread);
     mythread->moveToThread(thread);
-    connect(mythread,&MyThread::myThreadrun,this,&MainWindow::dealThread);
-
 }
 
 MainWindow::~MainWindow()
@@ -25,7 +25,7 @@ void MyThread::run(){
     while(isrun == true){
         QThread::sleep(1);
         emit myThreadrun();
-        qDebug()<<"child thread"<<QThread::currentThreadId();
+        qDebug()<<"child thread id ="<<QThread::currentThreadId();
         if(isrun == false)
             break;
     }
@@ -33,12 +33,19 @@ void MyThread::run(){
 
 void MyThread::start(){
     qDebug()<<"开始";
-    this->isrun = true;
+//    this->isrun = true;
+    while(isrun == true){
+        QThread::sleep(1);
+        emit myThreadrun();
+        qDebug()<<"child thread id ="<<QThread::currentThreadId();
+        if(isrun == false)
+            break;
+    }
 }
 
 void MyThread::stop(){
     qDebug() << "停止";
-    this->isrun = false;
+    isrun = false;
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -47,7 +54,7 @@ void MainWindow::on_pushButton_clicked()
         return;
     }
     thread->start();
-    mythread->start();
+    mythread->isrun = true;
     emit runThread();
 }
 
@@ -59,6 +66,8 @@ void MainWindow::on_stop_button_clicked()
     mythread->stop();
     thread->quit();
     thread->wait();
+    emit stopThread();
+    ui->lcdNumber->display(0);
 }
 void MainWindow::dealThreadclose() {
     on_stop_button_clicked();

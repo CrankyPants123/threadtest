@@ -16,11 +16,11 @@ public:
     void start();
     void stop();
 
+    bool isrun = false;
 signals:
     void myThreadrun();
 
 private:
-    bool isrun = false;
 };
 class MainWindow : public QMainWindow
 {
@@ -42,6 +42,7 @@ private:
     Ui::MainWindow *ui;
 signals:
     void runThread();
+    void stopThread();
 };
 
 #endif // MAINWINDOW_H
